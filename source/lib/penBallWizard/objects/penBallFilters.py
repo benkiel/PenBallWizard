@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
-import imp
+import importlib.machinery
+import importlib.util
 import json
 
 from fontParts.world import RGlyph
@@ -175,7 +176,10 @@ class PenBallFilter(PenBallBaseFilter):
             try:
                 moduleName = "externalPenBallWizard{0}".format(path.split('/')[-1][:-3])
                 if moduleName not in sys.modules:
-                    module = imp.load_source(moduleName, path, f)
+                    loader = importlib.machinery.SourceFileLoader(moduleName, path)
+                    spec = importlib.util.spec_from_loader(loader.name, loader)
+                    module = importlib.util.module_from_spec(spec)
+                    loader.exec_module(module)
                 else:
                     module = __import__(moduleName, fromlist=[functionName])
                 result = getattr(module, functionName)
